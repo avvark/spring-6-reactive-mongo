@@ -10,6 +10,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * Created by jt, Spring Framework Guru.
@@ -18,9 +19,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Document
 public class Customer {
     @Id
-    private Integer id;
+    private String id;
 
     @Size(max = 255)
     private String customerName;
