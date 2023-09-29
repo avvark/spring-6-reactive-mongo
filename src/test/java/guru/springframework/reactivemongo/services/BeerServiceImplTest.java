@@ -1,23 +1,22 @@
 package guru.springframework.reactivemongo.services;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+
 import guru.springframework.reactivemongo.domain.Beer;
 import guru.springframework.reactivemongo.mappers.BeerMapper;
 import guru.springframework.reactivemongo.mappers.BeerMapperImpl;
 import guru.springframework.reactivemongo.model.BeerDTO;
 import guru.springframework.reactivemongo.repositories.BeerRepository;
+import java.math.BigDecimal;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import reactor.core.publisher.Mono;
-
-import java.math.BigDecimal;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 
 @SpringBootTest
 class BeerServiceImplTest {
@@ -47,6 +46,22 @@ class BeerServiceImplTest {
           System.out.println(dto);
           atomicBoolean.set(true);
         });
+
+    await().untilTrue(atomicBoolean);
+  }
+
+  @Test
+  void findByBeerStyleTest() {
+    BeerDTO beerDTO1 = getSavedBeerDto();
+
+    AtomicBoolean atomicBoolean = new AtomicBoolean(false);
+    beerService
+        .findByBeerStyle(beerDTO1.getBeerStyle())
+        .subscribe(
+            dto -> {
+              System.out.println(dto);
+              atomicBoolean.set(true);
+            });
 
     await().untilTrue(atomicBoolean);
   }
