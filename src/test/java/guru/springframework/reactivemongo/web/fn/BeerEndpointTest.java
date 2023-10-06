@@ -27,9 +27,10 @@ public class BeerEndpointTest {
   @Test
   @Order(2)
   void testGetById() {
+    Beer beerDto = getSavedTestBeer();
     webTestClient
         .get()
-        .uri(BeerRouterConfig.BEER_PATH_ID, 1)
+        .uri(BeerRouterConfig.BEER_PATH_ID, beerDto.getId())
         .exchange()
         .expectStatus().isOk()
         .expectHeader().valueEquals("Content-type", "application/json")
@@ -177,9 +178,10 @@ public class BeerEndpointTest {
   @Test
   @Order(999)
   void testDeleteBeer() {
+    Beer beerDto = getSavedTestBeer();
     webTestClient
         .delete()
-        .uri(BeerRouterConfig.BEER_PATH_ID, 1)
+        .uri(BeerRouterConfig.BEER_PATH_ID, beerDto.getId())
         .exchange()
         .expectStatus()
         .isNoContent();

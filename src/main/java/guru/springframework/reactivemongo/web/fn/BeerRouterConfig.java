@@ -27,6 +27,7 @@ public class BeerRouterConfig {
         .POST(BEER_PATH, accept(APPLICATION_JSON), beerHandler::createNewBeer)
         .PUT(BEER_PATH_ID, accept(APPLICATION_JSON), beerHandler::updateBeer)
         .PATCH(BEER_PATH_ID, accept(APPLICATION_JSON), beerHandler::updateBeer)
+        .DELETE(BEER_PATH_ID, accept(APPLICATION_JSON), beerHandler::deleteBeerById)
         .build();
   }
 }
