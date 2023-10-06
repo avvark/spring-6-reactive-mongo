@@ -1,9 +1,12 @@
 package guru.springframework.reactivemongo.web.fn;
 
+import static org.hamcrest.Matchers.greaterThan;
+
 import guru.springframework.reactivemongo.domain.Beer;
 import guru.springframework.reactivemongo.model.BeerDTO;
-import guru.springframework.reactivemongo.repositories.BeerRepository;
+import guru.springframework.reactivemongo.services.BeerService;
 import java.math.BigDecimal;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -12,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 @SpringBootTest
@@ -19,7 +23,7 @@ import reactor.core.publisher.Mono;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class BeerEndpointTest {
 
-  @Autowired private BeerRepository beerRepository;
+  @Autowired private BeerService beerService;
 
   @Autowired
   WebTestClient webTestClient;
@@ -27,7 +31,7 @@ public class BeerEndpointTest {
   @Test
   @Order(2)
   void testGetById() {
-    Beer beerDto = getSavedTestBeer();
+    BeerDTO beerDto = getSavedTestBeer();
     webTestClient
         .get()
         .uri(BeerRouterConfig.BEER_PATH_ID, beerDto.getId())
@@ -48,6 +52,30 @@ public class BeerEndpointTest {
 
   @Test
   @Order(1)
+  void testListBeersByStyle() {
+    final String BEER_STYLE = "TEST";
+    BeerDTO testDto = getSavedTestBeer();
+    testDto.setBeerStyle(BEER_STYLE);
+
+    webTestClient
+        .post()
+        .uri(BeerRouterConfig.BEER_PATH)
+        .body(Mono.just(testDto), BeerDTO.class)
+        .header("Content-Type", "application/json")
+        .exchange();
+
+    webTestClient
+        .get()
+        .uri(UriComponentsBuilder.fromPath(BeerRouterConfig.BEER_PATH)
+            .queryParam("beerStyle", BEER_STYLE).build().toUri())
+        .exchange()
+        .expectStatus().isOk()
+        .expectHeader().valueEquals("Content-type", "application/json")
+        .expectBody().jsonPath("$.size()").isEqualTo(1);
+  }
+
+  @Test
+  @Order(1)
   void testListBeers() {
     webTestClient
         .get()
@@ -55,7 +83,7 @@ public class BeerEndpointTest {
         .exchange()
         .expectStatus().isOk()
         .expectHeader().valueEquals("Content-type", "application/json")
-        .expectBody().jsonPath("$.size()").isEqualTo(3);
+        .expectBody().jsonPath("$.size()").value(greaterThan(1));
   }
 
   @Test
@@ -87,15 +115,15 @@ public class BeerEndpointTest {
         .isBadRequest();
   }
 
-  private Beer getSavedTestBeer() {
-    return beerRepository.findAll().blockFirst();
+  private BeerDTO getSavedTestBeer() {
+    return beerService.listBeers().blockFirst();
   }
 
 
   @Test
   @Order(3)
   void testUpdateBeer() {
-    Beer beerDto = getSavedTestBeer();
+    BeerDTO beerDto = getSavedTestBeer();
     beerDto.setBeerName("New");
     webTestClient
         .put()
@@ -137,7 +165,7 @@ public class BeerEndpointTest {
   @Test
   @Order(3)
   void testPatchBeer() {
-    Beer beerDto = getSavedTestBeer();
+    BeerDTO beerDto = getSavedTestBeer();
     beerDto.setBeerName("New");
     webTestClient
         .patch()
@@ -178,7 +206,7 @@ public class BeerEndpointTest {
   @Test
   @Order(999)
   void testDeleteBeer() {
-    Beer beerDto = getSavedTestBeer();
+    BeerDTO beerDto = getSavedTestBeer();
     webTestClient
         .delete()
         .uri(BeerRouterConfig.BEER_PATH_ID, beerDto.getId())
